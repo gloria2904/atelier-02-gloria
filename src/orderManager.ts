@@ -1,7 +1,7 @@
 // Gestionnaire principal de l'application "VenteFlash"
 // NOTE : ce code fonctionne. C'est tout ce qu'on peut en dire.
 
-import { addVat, applyCustomerDiscount } from "./pricing";
+import { computeOrderTtc } from "./pricing";
 
 export class OrderManager {
   // la "base de donnees" de l'application
@@ -25,27 +25,8 @@ export class OrderManager {
     promo: string | null,
     sendEmail: boolean
   ): string {
-    // calcul du total hors taxe
-    let total = 0;
-    for (let i = 0; i < items.length; i++) {
-      total = total + items[i][1] * items[i][2];
-    }
-    // application de la remise selon le type de client
-    total = applyCustomerDiscount(total, type);
-    // application du code promo
-    if (promo != null && promo == "WELCOME10") {
-      total = total * 0.9;
-    }
-    // calcul de la TVA
-    let ttc = addVat(total);
-    // frais de livraison selon le mode choisi
-    if (shipping == "STANDARD") {
-      ttc = ttc + 5.9;
-    } else if (shipping == "EXPRESS") {
-      ttc = ttc + 14.9;
-    } else if (shipping == "RETRAIT") {
-      // rien a ajouter
-    }
+    // calcul du total TTC (remise, promo, TVA, livraison)
+    const ttc = computeOrderTtc(items, type, shipping, promo);
     // enregistrement de la commande dans la base
     this.orders.push([name, type, ttc, shipping]);
     // envoi de l'email de confirmation au client

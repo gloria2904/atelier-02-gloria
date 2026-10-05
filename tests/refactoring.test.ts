@@ -17,3 +17,18 @@ describe("DRY : une seule règle tarifaire", () => {
     expect(new ReportGenerator().estimateTtc(100, type)).toBeCloseTo(ttc, 2);
   });
 });
+
+describe("SRP : le calcul du prix", () => {
+  test("le code promo s'applique après la remise client, puis TVA et livraison", () => {
+    const m = new OrderManager();
+    m.processOrder("X", "PRO", [["A", 10, 2], ["B", 5, 4]], "EXPRESS", "WELCOME10", false);
+    // 40 HT -5% = 38 ; -10% promo = 34.2 ; TTC = 41.04 ; +14.9 = 55.94
+    expect(m.getTotalRevenue()).toBeCloseTo(55.94, 2);
+  });
+
+  test("un code promo inconnu et un mode de livraison inconnu n'ajoutent rien", () => {
+    const m = new OrderManager();
+    m.processOrder("X", "VIP", [["A", 100, 1]], "DRONE", "NOPE", false);
+    expect(m.getTotalRevenue()).toBeCloseTo(108, 2);
+  });
+});
