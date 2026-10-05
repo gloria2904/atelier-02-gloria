@@ -1,3 +1,4 @@
+import { Notifier } from "../src/notifier";
 import { OrderManager } from "../src/orderManager";
 import { InMemoryOrderRepository, Order, OrderRepository } from "../src/orderRepository";
 import { ReportGenerator } from "../src/reportGenerator";
@@ -60,5 +61,34 @@ describe("DIP : le stockage est injecté", () => {
     const b = new OrderManager(new InMemoryOrderRepository());
     a.processOrder("A", "PRO", [["X", 10, 1]], "RETRAIT", null, false);
     expect(b.getOrders()).toHaveLength(0);
+  });
+});
+
+describe("DIP : la notification est injectée", () => {
+  const makeSpy = () => {
+    const calls: [string, number][] = [];
+    const notifier: Notifier = { orderConfirmed: (name, ttc) => { calls.push([name, ttc]); } };
+    return { calls, notifier };
+  };
+
+  test("le client est prévenu quand sendEmail est vrai", () => {
+    const { calls, notifier } = makeSpy();
+    const m = new OrderManager(new InMemoryOrderRepository(), notifier);
+    m.processOrder("Fay", "PRO", [["A", 100, 1]], "RETRAIT", null, true);
+    expect(calls).toEqual([["Fay", 114]]);
+  });
+
+  test("personne n'est prévenu quand sendEmail est faux", () => {
+    const { calls, notifier } = makeSpy();
+    const m = new OrderManager(new InMemoryOrderRepository(), notifier);
+    m.processOrder("Gus", "PRO", [["A", 100, 1]], "RETRAIT", null, false);
+    expect(calls).toHaveLength(0);
+  });
+
+  test("par défaut, le message part dans la console", () => {
+    const log = jest.spyOn(console, "log").mockImplementation(() => {});
+    new OrderManager().processOrder("Hana", "PRO", [["A", 100, 1]], "RETRAIT", null, true);
+    expect(log).toHaveBeenCalledWith("EMAIL a Hana : votre commande de 114.00 EUR est confirmee");
+    log.mockRestore();
   });
 });

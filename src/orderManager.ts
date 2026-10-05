@@ -1,13 +1,17 @@
 // Gestionnaire principal de l'application "VenteFlash"
 // NOTE : ce code fonctionne. C'est tout ce qu'on peut en dire.
 
+import { ConsoleNotifier, Notifier } from "./notifier";
 import { InMemoryOrderRepository, Order, OrderRepository } from "./orderRepository";
 import { computeOrderTtc } from "./pricing";
 import { formatReceipt } from "./receipt";
 
 export class OrderManager {
-  // le stockage est fourni de l'exterieur (injection de dependance)
-  constructor(private readonly repository: OrderRepository = new InMemoryOrderRepository()) {}
+  // stockage et notification sont fournis de l'exterieur (injection de dependance)
+  constructor(
+    private readonly repository: OrderRepository = new InMemoryOrderRepository(),
+    private readonly notifier: Notifier = new ConsoleNotifier()
+  ) {}
 
   // les commandes enregistrees, en lecture seule
   getOrders(): readonly Order[] {
@@ -38,7 +42,7 @@ export class OrderManager {
     this.repository.save({ name, type, ttc, shipping });
     // envoi de l'email de confirmation au client
     if (sendEmail) {
-      console.log("EMAIL a " + name + " : votre commande de " + ttc.toFixed(2) + " EUR est confirmee");
+      this.notifier.orderConfirmed(name, ttc);
     }
     return formatReceipt(name, type, ttc, shipping);
   }
