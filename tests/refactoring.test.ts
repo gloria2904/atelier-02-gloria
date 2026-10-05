@@ -1,7 +1,7 @@
 import { Notifier } from "../src/notifier";
 import { OrderManager } from "../src/orderManager";
 import { InMemoryOrderRepository, Order, OrderRepository } from "../src/orderRepository";
-import { ReportGenerator } from "../src/reportGenerator";
+import { ReportGenerator, SalesSource } from "../src/reportGenerator";
 
 // Filet de sécurité de l'atelier 2 : ces tests vérifient les règles
 // que le refactoring doit préserver ou rendre explicites.
@@ -90,5 +90,16 @@ describe("DIP : la notification est injectée", () => {
     new OrderManager().processOrder("Hana", "PRO", [["A", 100, 1]], "RETRAIT", null, true);
     expect(log).toHaveBeenCalledWith("EMAIL a Hana : votre commande de 114.00 EUR est confirmee");
     log.mockRestore();
+  });
+});
+
+describe("DIP : le rapport lit une abstraction", () => {
+  test("ReportGenerator fonctionne avec n'importe quelle source de ventes", () => {
+    const source: SalesSource = {
+      getOrders: () => [{ name: "Zoe", type: "VIP", ttc: 50, shipping: "RETRAIT" }],
+      getTotalRevenue: () => 50,
+    };
+    const html = new ReportGenerator().generateHtml(source);
+    expect(html).toBe("<h1>Rapport des ventes</h1><ul><li>Zoe : 50.00 EUR</li></ul><p>Total: 50.00 EUR</p>");
   });
 });
