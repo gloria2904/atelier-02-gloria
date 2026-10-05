@@ -5,8 +5,9 @@ import { addVat, applyCustomerDiscount } from "./pricing";
 export class ReportGenerator {
   generateHtml(manager: OrderManager): string {
     let html = "<h1>Rapport des ventes</h1><ul>";
-    for (let i = 0; i < manager.orders.length; i++) {
-      html = html + "<li>" + manager.orders[i][0] + " : " + manager.orders[i][2].toFixed(2) + " EUR</li>";
+    const orders = manager.getOrders();
+    for (let i = 0; i < orders.length; i++) {
+      html = html + "<li>" + orders[i].name + " : " + orders[i].ttc.toFixed(2) + " EUR</li>";
     }
     html = html + "</ul><p>Total: " + manager.getTotalRevenue().toFixed(2) + " EUR</p>";
     return html;

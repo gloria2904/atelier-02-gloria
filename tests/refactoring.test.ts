@@ -1,4 +1,5 @@
 import { OrderManager } from "../src/orderManager";
+import { InMemoryOrderRepository, Order, OrderRepository } from "../src/orderRepository";
 import { ReportGenerator } from "../src/reportGenerator";
 
 // Filet de sécurité de l'atelier 2 : ces tests vérifient les règles
@@ -38,5 +39,26 @@ describe("SRP : le reçu", () => {
     const m = new OrderManager();
     const recu = m.processOrder("Dana", "VIP", [["A", 1, 1]], "EXPRESS", null, false);
     expect(recu).toBe("Recu Dana (VIP) - Total TTC: 15.98 EUR - Livraison: EXPRESS");
+  });
+});
+
+describe("DIP : le stockage est injecté", () => {
+  test("OrderManager enregistre les commandes dans le dépôt fourni", () => {
+    const saved: Order[] = [];
+    const fakeRepository: OrderRepository = {
+      save: (order) => { saved.push(order); },
+      findAll: () => saved,
+    };
+    const m = new OrderManager(fakeRepository);
+    m.processOrder("Eve", "PRO", [["A", 100, 1]], "RETRAIT", null, false);
+    expect(saved).toEqual([{ name: "Eve", type: "PRO", ttc: 114, shipping: "RETRAIT" }]);
+    expect(m.getTotalRevenue()).toBeCloseTo(114, 2);
+  });
+
+  test("deux gestionnaires avec des dépôts différents ne partagent rien", () => {
+    const a = new OrderManager(new InMemoryOrderRepository());
+    const b = new OrderManager(new InMemoryOrderRepository());
+    a.processOrder("A", "PRO", [["X", 10, 1]], "RETRAIT", null, false);
+    expect(b.getOrders()).toHaveLength(0);
   });
 });
