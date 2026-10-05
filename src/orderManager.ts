@@ -1,6 +1,8 @@
 // Gestionnaire principal de l'application "VenteFlash"
 // NOTE : ce code fonctionne. C'est tout ce qu'on peut en dire.
 
+import { addVat, applyCustomerDiscount } from "./pricing";
+
 export class OrderManager {
   // la "base de donnees" de l'application
   public orders: any[] = [];
@@ -29,19 +31,13 @@ export class OrderManager {
       total = total + items[i][1] * items[i][2];
     }
     // application de la remise selon le type de client
-    if (type == "PARTICULIER") {
-      total = total - total * 0.02;
-    } else if (type == "PRO") {
-      total = total - total * 0.05;
-    } else if (type == "VIP") {
-      total = total - total * 0.1;
-    }
+    total = applyCustomerDiscount(total, type);
     // application du code promo
     if (promo != null && promo == "WELCOME10") {
       total = total * 0.9;
     }
     // calcul de la TVA
-    let ttc = total * 1.2;
+    let ttc = addVat(total);
     // frais de livraison selon le mode choisi
     if (shipping == "STANDARD") {
       ttc = ttc + 5.9;

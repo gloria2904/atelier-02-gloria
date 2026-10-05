@@ -1,4 +1,5 @@
 import { OrderManager } from "./orderManager";
+import { addVat, applyCustomerDiscount } from "./pricing";
 
 // genere les rapports pour la direction
 export class ReportGenerator {
@@ -13,15 +14,7 @@ export class ReportGenerator {
 
   // estime le TTC d'un devis (avant commande)
   estimateTtc(ht: number, type: string): number {
-    // on applique la remise selon le type de client
-    if (type == "PARTICULIER") {
-      ht = ht - ht * 0.02;
-    } else if (type == "PRO") {
-      ht = ht - ht * 0.05;
-    } else if (type == "VIP") {
-      ht = ht - ht * 0.1;
-    }
-    // puis la TVA
-    return ht * 1.2;
+    // remise selon le type de client, puis TVA
+    return addVat(applyCustomerDiscount(ht, type));
   }
 }
