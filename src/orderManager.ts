@@ -2,6 +2,7 @@
 // NOTE : ce code fonctionne. C'est tout ce qu'on peut en dire.
 
 import { computeOrderTtc } from "./pricing";
+import { formatReceipt } from "./receipt";
 
 export class OrderManager {
   // la "base de donnees" de l'application
@@ -33,7 +34,7 @@ export class OrderManager {
     if (sendEmail) {
       console.log("EMAIL a " + name + " : votre commande de " + ttc.toFixed(2) + " EUR est confirmee");
     }
-    return "Recu " + name + " (" + type + ") - Total TTC: " + ttc.toFixed(2) + " EUR - Livraison: " + shipping;
+    return formatReceipt(name, type, ttc, shipping);
   }
 
   // calcule le chiffre d'affaires total

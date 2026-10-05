@@ -32,3 +32,11 @@ describe("SRP : le calcul du prix", () => {
     expect(m.getTotalRevenue()).toBeCloseTo(108, 2);
   });
 });
+
+describe("SRP : le reçu", () => {
+  test("le reçu est mis en forme avec deux décimales", () => {
+    const m = new OrderManager();
+    const recu = m.processOrder("Dana", "VIP", [["A", 1, 1]], "EXPRESS", null, false);
+    expect(recu).toBe("Recu Dana (VIP) - Total TTC: 15.98 EUR - Livraison: EXPRESS");
+  });
+});
