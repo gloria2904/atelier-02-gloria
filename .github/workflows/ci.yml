@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+  grille:
+    name: Grille
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - name: src/ et tests/ inchangés
+        run: |
+          if ! git diff --quiet "origin/${{ github.base_ref }}" HEAD -- src tests; then
+            echo "::error::Les fichiers de src/ ou tests/ ont été modifiés. Aujourd'hui, on audite sans coder."
+            git diff --stat "origin/${{ github.base_ref }}" HEAD -- src tests
+            exit 1
+          fi
+      - name: Format de la grille
+        run: node outils/verifier-grille.js
