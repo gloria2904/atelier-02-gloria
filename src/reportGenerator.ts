@@ -1,11 +1,20 @@
-import { OrderManager } from "./orderManager";
+import { Order } from "./orderRepository";
+import { addVat, applyCustomerDiscount } from "./pricing";
+
+// Port : ce dont le rapport a besoin pour lire les ventes.
+// OrderManager le satisfait, tout comme un faux dans les tests.
+export interface SalesSource {
+  getOrders(): readonly Order[];
+  getTotalRevenue(): number;
+}
 
 // genere les rapports pour la direction
 export class ReportGenerator {
-  generateHtml(manager: OrderManager): string {
+  generateHtml(manager: SalesSource): string {
     let html = "<h1>Rapport des ventes</h1><ul>";
-    for (let i = 0; i < manager.orders.length; i++) {
-      html = html + "<li>" + manager.orders[i][0] + " : " + manager.orders[i][2].toFixed(2) + " EUR</li>";
+    const orders = manager.getOrders();
+    for (let i = 0; i < orders.length; i++) {
+      html = html + "<li>" + orders[i].name + " : " + orders[i].ttc.toFixed(2) + " EUR</li>";
     }
     html = html + "</ul><p>Total: " + manager.getTotalRevenue().toFixed(2) + " EUR</p>";
     return html;
@@ -13,15 +22,7 @@ export class ReportGenerator {
 
   // estime le TTC d'un devis (avant commande)
   estimateTtc(ht: number, type: string): number {
-    // on applique la remise selon le type de client
-    if (type == "PARTICULIER") {
-      ht = ht - ht * 0.02;
-    } else if (type == "PRO") {
-      ht = ht - ht * 0.05;
-    } else if (type == "VIP") {
-      ht = ht - ht * 0.1;
-    }
-    // puis la TVA
-    return ht * 1.2;
+    // remise selon le type de client, puis TVA
+    return addVat(applyCustomerDiscount(ht, type));
   }
 }
