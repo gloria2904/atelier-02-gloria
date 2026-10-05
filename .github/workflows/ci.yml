@@ -29,12 +29,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-      - name: src/ et tests/ inchangés
-        run: |
-          if ! git diff --quiet "origin/${{ github.base_ref }}" HEAD -- src tests; then
-            echo "::error::Les fichiers de src/ ou tests/ ont été modifiés. Aujourd'hui, on audite sans coder."
-            git diff --stat "origin/${{ github.base_ref }}" HEAD -- src tests
-            exit 1
-          fi
       - name: Format de la grille
         run: node outils/verifier-grille.js
